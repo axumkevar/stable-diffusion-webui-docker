@@ -1,15 +1,32 @@
-FROM pytorch/pytorch:2.3.0-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.3.0-cuda12.1-cudnn8-devel
+
+ENV PUTHONDONTWRITEBYCODE 1
+ENV PYTHONUNBUFFERED 1
 
 ENV DEBIAN_FRONTEND=noninteractive PIP_PREFER_BINARY=1
 
-RUN apt-get update && apt-get install -y git && apt-get clean
+RUN apt-get update && apt-get install -y git gcc g++ build-essential
+RUN pip install imageio imageio-ffmpeg pyspng numpy ninja
+RUN apt-get clean
+RUN conda install -c conda-forge gxx_linux-64
 
 ENV ROOT=/stable-diffusion
 RUN --mount=type=cache,target=/root/.cache/pip \
   git clone https://github.com/comfyanonymous/ComfyUI.git ${ROOT} && \
   cd ${ROOT} && \
   git checkout master && \
-  git reset --hard 276f8fce9f5a80b500947fb5745a4dde9e84622d && \
+  pip install -r requirements.txt
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+  git clone https://github.com/Stability-AI/stable-fast-3d.git ${ROOT}/custom_nodes/stable-fast-3d && \
+  cd ${ROOT}/custom_nodes/stable-fast-3d && \
+  git checkout master && \
+  pip install -r requirements.txt
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+  git clone https://github.com/axumkevar/ComfyUI-stylegan3-editing.git ${ROOT}/custom_nodes/ComfyUI-stylegan3-editing && \
+  cd ${ROOT}/custom_nodes/ComfyUI-stylegan3-editing && \
+  git checkout master && \
   pip install -r requirements.txt
 
 WORKDIR ${ROOT}

@@ -1,9 +1,14 @@
+version: '2.2'
 x-base_service: &base_service
     ports:
       - "${WEBUI_PORT:-7860}:7860"
     volumes:
-      - &v1 ./data:/data
-      - &v2 ./output:/output
+      - &v1 /dockmnt/sdui/ComfyUI:/stable-diffusion
+      - &v2 /dockmnt/sdui/input:/stable-diffusion/input
+      - &v3 /dockmnt/sdui/output:/stable-diffusion/output
+      - &v4 /dockmnt/sdui/models:/stable-diffusion/models
+      - &v5 /dockmnt/sdui/data:/data
+
     stop_signal: SIGKILL
     tty: true
     deploy:
@@ -28,8 +33,10 @@ services:
     profiles: ["auto"]
     build: ./services/AUTOMATIC1111
     image: sd-auto:78
+    runtime: nvidia
     environment:
       - CLI_ARGS=--allow-code --medvram --xformers --enable-insecure-extension-access --api
+      - NVIDIA_VISIBLE_DEVICES=all
 
   auto-cpu:
     <<: *automatic
@@ -42,10 +49,11 @@ services:
     <<: *base_service
     profiles: ["comfy"]
     build: ./services/comfy/
-    image: sd-comfy:7
+    image: sd-comfy-ak:latest
+    runtime: nvidia
     environment:
-      - CLI_ARGS=
-
+      - CLI_ARGS=--disable-cuda-malloc
+      - NVIDIA_VISIBLE_DEVICES=all
 
   comfy-cpu:
     <<: *comfy

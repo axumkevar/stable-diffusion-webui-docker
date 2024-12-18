@@ -7,8 +7,7 @@ mkdir -vp /data/config/comfy/custom_nodes
 declare -A MOUNTS
 
 MOUNTS["/root/.cache"]="/data/.cache"
-MOUNTS["${ROOT}/input"]="/data/config/comfy/input"
-MOUNTS["${ROOT}/output"]="/output/comfy"
+MOUNTS["/usr/local/bin"]="/data/sbin"
 
 for to_path in "${!MOUNTS[@]}"; do
   set -Eeuo pipefail
